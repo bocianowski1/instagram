@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  postgres:
+    container_name: postgres
+    restart: always
+    image: postgres:alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  auth:
+    build:
+      context: ./auth
+    container_name: auth
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  # sentiment:
+  #   build:
+  #     context: ./sentiment
+  #   container_name: sentiment
+  #   ports:
+  #     - "5555:5555"
+  #   networks:
+  #     - app-network
+
+  cdn:
+    build:
+      context: ./cdn
+    container_name: cdn
+    env_file:
+      - .env
+    ports:
+      - "8787:8787"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis:/data
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: ./web
+    container_name: web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth
+      - cdn
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
+    #   - /app/.next
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres:
+  redis:
+    driver: local
