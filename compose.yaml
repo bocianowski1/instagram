@@ -63,19 +63,17 @@ services:
     networks:
       - app-network
 
-  web:
+  client:
     build:
-      context: ./web
-    container_name: web
+      context: ./client
+    container_name: client
     ports:
       - "3000:3000"
     depends_on:
       - auth
       - cdn
-    # volumes:
-    #   - .:/app
-    #   - /app/node_modules
-    #   - /app/.next
+    volumes:
+      - .:/app
     networks:
       - app-network
 
