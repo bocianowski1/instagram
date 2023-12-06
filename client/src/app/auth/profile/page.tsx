@@ -4,9 +4,12 @@ import { loadImages } from "@/api/images";
 import { CloudImage } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
+import { getAuth, logout } from "@/api/auth";
 
 export default async function ProfilePage() {
+  const token = await getAuth();
   const images = await loadImages();
+
   return (
     <main className="flex flex-col w-screen">
       <div className="px-4">
@@ -15,9 +18,11 @@ export default async function ProfilePage() {
             <IoChevronBack />
           </Link>
           <h1 className="font-semibold">faze_torger</h1>
-          <button className="text-2xl">
-            <HiOutlineDotsHorizontal />
-          </button>
+          <form className="text-2xl" action={logout}>
+            <button className="font-semibold" type="submit">
+              <HiOutlineDotsHorizontal />
+            </button>
+          </form>
         </section>
 
         <section className="flex items-center gap-12">

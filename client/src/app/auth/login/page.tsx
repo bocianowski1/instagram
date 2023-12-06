@@ -1,45 +1,27 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { login } from "@/api/auth";
+import Image from "next/image";
 
 export default function LoginPage() {
-  async function login(formData: FormData) {
-    "use server";
-    const username = formData.get("username");
-    const password = formData.get("password");
-
-    if (!username || !password) {
-      return;
-    }
-    const response = await fetch("http://localhost:8080/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await response.json();
-
-    if (!data.token) {
-      return;
-    }
-    cookies().set(
-      "token",
-      data.token
-      //   httpOnly: true,
-      //   path: "/",
-    );
-
-    redirect("/");
-  }
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold">Login</h1>
+    <div className="flex flex-col mx-auto mt-40 px-8 py-6 gap-8 items-center justify-center h-fit w-fit border border-neutral-200 rounded-md">
+      <h1 className="text-3xl font-bold">
+        <div className="h-32">
+          <Image
+            src="/instagram-logo.png"
+            alt="logo"
+            height={400}
+            width={400}
+            className="object-contain h-full w-full"
+          />
+        </div>
+      </h1>
       <form className="flex flex-col gap-4" action={login} method="POST">
         <label className="flex flex-col gap-2">
           Username
           <input
+            autoFocus
             type="text"
-            className="text-black px-3 py-1 rounded-xl"
+            className="text-black px-3 py-1 rounded-lg border border-blue-500"
             name="username"
           />
         </label>
@@ -47,13 +29,13 @@ export default function LoginPage() {
           Password
           <input
             type="password"
-            className="text-black px-3 py-1 rounded-xl"
+            className="text-black px-3 py-1 rounded-lg border border-blue-500"
             name="password"
           />
         </label>
         <button
           type="submit"
-          className="bg-blue-500 font-semibold text-white px-4 py-2 rounded-xl"
+          className="bg-blue-500 font-semibold text-white px-4 py-2 rounded-lg"
         >
           Login
         </button>
