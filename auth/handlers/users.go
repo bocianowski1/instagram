@@ -65,11 +65,13 @@ func HandleLogin(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": t, "user": user})
 }
 
-func Restricted(c *fiber.Ctx) error {
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	username := claims["username"].(string)
-	return c.SendString("Welcome " + username)
+func HandleGetUser(c *fiber.Ctx) error {
+	user, ok := c.Locals("user").(*db.User)
+	if !ok {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	return c.JSON(user)
 }
 
 func HandleGetUsers(c *fiber.Ctx) error {
