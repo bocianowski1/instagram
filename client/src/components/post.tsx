@@ -13,7 +13,7 @@ export function Post({ imageURL }: { imageURL: string }) {
         />
         <p className="font-semibold">faze_torger</p>
       </section>
-      <section className="w-screen h-[45vh]">
+      <section className="w-screen h-[50vh]">
         {imageURL.endsWith("mp4") ? (
           <video
             src={imageURL}
