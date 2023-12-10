@@ -7,7 +7,7 @@ import Link from "next/link";
 import { getAuth, logout } from "@/api/auth";
 
 export default async function ProfilePage() {
-  const token = await getAuth();
+  const { user } = await getAuth();
   const images = await loadImages();
 
   return (
@@ -17,7 +17,7 @@ export default async function ProfilePage() {
           <Link href={"/"} className="text-2xl">
             <IoChevronBack />
           </Link>
-          <h1 className="font-semibold">faze_torger</h1>
+          <h1 className="font-semibold">faze_torger ({user.username})</h1>
           <form className="text-2xl" action={logout}>
             <button className="font-semibold" type="submit">
               <HiOutlineDotsHorizontal />

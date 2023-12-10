@@ -1,4 +1,4 @@
-import { login } from "@/api/auth";
+import { useLogin } from "@/api/auth";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -15,7 +15,7 @@ export default function LoginPage() {
           />
         </div>
       </h1>
-      <form className="flex flex-col gap-4" action={login} method="POST">
+      <form className="flex flex-col gap-4" action={useLogin} method="POST">
         <label className="flex flex-col gap-2">
           Username
           <input
