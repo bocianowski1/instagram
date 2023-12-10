@@ -24,7 +24,6 @@ type Image = {
 
 const cache = async (req: Request, res: Response, next: NextFunction) => {
   if (req.params.id) {
-    console.log("ID", req.params.id);
     const image = await client.get(req.params.id);
     if (image) {
       return res.json(JSON.parse(image));
@@ -49,7 +48,7 @@ const cache = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 app.get("/", (req, res) => {
-  res.json({ message: "Hello from express (CDN)" });
+  res.json({ message: "ok" });
 });
 
 app.get("/images", cache, async (req, res) => {
