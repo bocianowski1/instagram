@@ -1,4 +1,5 @@
 "use server";
+import { User } from "@/lib/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -7,10 +8,16 @@ export async function getAuth() {
   if (!token) {
     redirect("/auth/login");
   }
-  return token;
+
+  const cookieUser = cookies().get("user");
+  if (!cookieUser) {
+    redirect("/auth/login");
+  }
+  const user = JSON.parse(cookieUser.value) as User;
+  return { token, user };
 }
 
-export async function login(formData: FormData) {
+export async function useLogin(formData: FormData) {
   const username = formData.get("username");
   const password = formData.get("password");
 
@@ -20,13 +27,16 @@ export async function login(formData: FormData) {
     body: JSON.stringify({ username, password }),
   });
 
+  console.log(response.status);
+
   if (!response.ok) {
     throw new Error(response.statusText);
   }
 
-  const { token } = await response.json();
+  const { token, user } = await response.json();
 
   cookies().set("token", token);
+  cookies().set("user", JSON.stringify(user));
 
   redirect("/");
 }
