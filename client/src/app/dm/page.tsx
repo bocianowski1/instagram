@@ -7,7 +7,7 @@ import { UserPreview } from "@/components/user-preview";
 
 export default function DMPage() {
   return (
-    <main className="flex flex-col w-screen px-4">
+    <main className="flex flex-col w-full px-4">
       <section className="flex justify-between text-lg py-4">
         <Link href={"/"} className="text-2xl">
           <IoChevronBack />
@@ -60,7 +60,7 @@ export default function DMPage() {
 
 function MessagePreview() {
   return (
-    <Link href={`dm/${"admin"}`}>
+    <Link href={`dm/${"admin--guest"}`}>
       <div className="flex items-center gap-4">
         <UserPreview profileImage={<div />} hasStory />
         <div className="flex flex-col flex-1">

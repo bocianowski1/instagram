@@ -23,28 +23,34 @@ type Image = {
 };
 
 const cache = async (req: Request, res: Response, next: NextFunction) => {
-  if (req.params.id) {
-    const image = await client.get(req.params.id);
-    if (image) {
-      return res.json(JSON.parse(image));
-    }
-  }
-  if (req.body.ids && req.body.ids.length > 0) {
-    req.body.forEach(async (image: Image) => {
-      const cachedImage = await client.get(image.public_id);
-      if (cachedImage) {
-        return res.json(JSON.parse(cachedImage));
+  try {
+    if (req.params.id) {
+      const image = await client.get(req.params.id);
+      if (image) {
+        return res.json(JSON.parse(image));
       }
-    });
-  }
-  if (req.params.id === undefined) {
-    const images = await client.get("images");
-    if (images) {
-      return res.json(JSON.parse(images));
     }
+    if (req.body.ids && req.body.ids.length > 0) {
+      req.body.forEach(async (image: Image) => {
+        const cachedImage = await client.get(image.public_id);
+        if (cachedImage) {
+          return res.json(JSON.parse(cachedImage));
+        }
+      });
+    }
+    if (req.params.id === undefined) {
+      const images = await client.get("images");
+      if (images) {
+        return res.json(JSON.parse(images));
+      }
+    }
+  } catch (error) {
+    console.error("Error retrieving image:", error);
+    // res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    console.log("NO CACHE");
+    next();
   }
-  console.log("NO CACHE");
-  next();
 };
 
 app.get("/", (req, res) => {
@@ -72,7 +78,7 @@ app.get("/images", cache, async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error("Error retrieving images:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    // res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

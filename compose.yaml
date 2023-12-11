@@ -46,6 +46,7 @@ services:
       - .env
     ports:
       - "8787:8787"
+    restart: always
     depends_on:
       - redis
     networks:
@@ -58,22 +59,34 @@ services:
     ports:
       - "6379:6379"
     command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - redis:/data
+    # volumes:
+    #   - redis:/data
     networks:
       - app-network
 
-  client:
+  # client:
+  #   build:
+  #     context: ./client
+  #   container_name: client
+  #   ports:
+  #     - "3000:3000"
+  #   restart: always
+  #   depends_on:
+  #     - auth
+  #     - cdn
+  #     - messages
+  #   networks:
+  #     - app-network
+
+  messages:
     build:
-      context: ./client
-    container_name: client
+      context: ./messages
+    container_name: messages
     ports:
-      - "3000:3000"
+      - "9999:9999"
+    restart: always
     depends_on:
       - auth
-      - cdn
-    volumes:
-      - .:/app
     networks:
       - app-network
 

@@ -3,62 +3,100 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"strings"
+	"sync"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/websocket"
+	"golang.org/x/net/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow connections from any origin during development
-		return true
-	},
+type Client struct {
+	ID       string
+	Username string
+	Conn     *websocket.Conn
 }
 
-func handleMessages(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer conn.Close()
+var clients = make(map[string]*Client)
+var clientsLock = &sync.RWMutex{}
 
+func wsHandler(ws *websocket.Conn) {
+	clientID := generateUniqueID()
+	client := &Client{ID: clientID, Conn: ws}
+
+	clientsLock.Lock()
+	clients[clientID] = client
+	clientsLock.Unlock()
+
+	log.Printf("Client connected: %s\n", clientID)
+
+	// Handle incoming messages
 	for {
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println(err)
-			return
+		var msg string
+		if err := websocket.Message.Receive(ws, &msg); err != nil {
+			if err.Error() != "EOF" {
+				log.Printf("Error receiving message from %s: %v\n", clientID, err)
+			}
+			break
 		}
 
-		fmt.Println(string(p))
+		// Extract username from the message (format is "sender--message--receiver")
+		parts := strings.Split(msg, "--")
+		if len(parts) != 3 {
+			log.Printf("Invalid message format: %s\n", msg)
+			continue
+		}
 
-		// print the sender
-		fmt.Println("Message received from:", conn.RemoteAddr())
+		client.Username = parts[0]
+		msg = parts[1]
+		receiver := parts[2]
 
-		// Handle the received message (e.g., store it in the database)
-		// ...
+		log.Println("Message received: " + msg + " from " + client.Username + " to " + receiver)
 
-		// Send a response (if needed)
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			fmt.Println(err)
-			return
+		// Broadcast the message to all connected clients
+		broadcastMessage(clientID, client.Username, msg, receiver)
+	}
+}
+
+func broadcastMessage(senderID, senderUsername, msg, receiver string) {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+
+	for _, client := range clients {
+		if isWebSocketOpen(client.Conn) {
+			fullMessage := fmt.Sprintf("%s--%s--%s", senderUsername, msg, receiver)
+			if err := websocket.Message.Send(client.Conn, fullMessage); err != nil {
+				log.Printf("Error sending message to %s: %v\n", client.ID, err)
+			}
+		} else {
+			removeClient(client.ID)
 		}
 	}
+}
+
+func isWebSocketOpen(ws *websocket.Conn) bool {
+	var zeroByte []byte
+	err := websocket.Message.Send(ws, zeroByte)
+	return err == nil
+}
+
+func generateUniqueID() string {
+	// 1000 - 9999
+	id := rand.Intn(8999) + 1000
+	return fmt.Sprintf("%d", id)
+}
+
+func removeClient(clientID string) {
+	delete(clients, clientID)
+	log.Printf("Client disconnected: %s\n", clientID)
 }
 
 func main() {
-	log.Println("Starting server on :9999")
+	http.HandleFunc("/ws", func(w http.ResponseWriter, req *http.Request) {
+		s := websocket.Server{Handler: websocket.Handler(wsHandler)}
+		s.ServeHTTP(w, req)
+	})
 
-	// Use handlers.CORS to enable CORS
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
-		handlers.AllowCredentials(),
-	)(http.HandlerFunc(handleMessages))
-
-	http.Handle("/ws", corsHandler)
-
+	log.Println("WebSocket server is listening on :9999")
 	log.Fatal(http.ListenAndServe(":9999", nil))
 }

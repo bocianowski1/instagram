@@ -8,7 +8,7 @@ import { getAuth, logout } from "@/api/auth";
 
 export default async function ProfilePage() {
   const { user } = await getAuth();
-  const images = await loadImages();
+  // const images = await loadImages();
 
   return (
     <main className="flex flex-col w-screen">
@@ -29,21 +29,21 @@ export default async function ProfilePage() {
           <div className="p-[4px] bg-gradient-to-bl from-rose-600 to-orange-400 h-fit w-fit rounded-full">
             <div className="p-[3px] bg-white h-fit w-fit rounded-full">
               <div className="h-32 w-32 flex items-center justify-center rounded-full bg-gray-300">
-                <Image
+                {/* <Image
                   src={images[1].url ?? ""}
                   alt="torger"
                   height={100}
                   width={100}
                   className="rounded-full w-full h-full object-cover"
-                />
+                /> */}
               </div>
             </div>
           </div>
           <ul className="flex gap-10 text-lg">
             <li className="flex flex-col items-center">
-              <span className="font-semibold translate-y-2">
+              {/* <span className="font-semibold translate-y-2">
                 {images.length}
-              </span>{" "}
+              </span>{" "} */}
               Posts
             </li>
             <li className="flex flex-col items-center">
@@ -75,7 +75,7 @@ export default async function ProfilePage() {
         </section>
       </div>
 
-      <section className="grid grid-cols-3 w-screen">
+      {/* <section className="grid grid-cols-3 w-screen">
         {images.map((image: CloudImage) => (
           <div key={image.id} className="relative h-44 p-[2px] bg-white">
             {image.url.endsWith("mp4") ? (
@@ -97,7 +97,7 @@ export default async function ProfilePage() {
             )}
           </div>
         ))}
-      </section>
+      </section> */}
     </main>
   );
 }

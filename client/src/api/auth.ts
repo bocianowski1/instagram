@@ -17,7 +17,7 @@ export async function getAuth() {
   return { token, user };
 }
 
-export async function useLogin(formData: FormData) {
+export async function login(formData: FormData) {
   const username = formData.get("username");
   const password = formData.get("password");
 
@@ -29,7 +29,11 @@ export async function useLogin(formData: FormData) {
 
   console.log(response.status);
 
-  if (!response.ok) {
+  if (response.status !== 200) {
+    console.log(response.statusText);
+    console.log(response.status);
+    console.log(username);
+    console.log(password);
     throw new Error(response.statusText);
   }
 
