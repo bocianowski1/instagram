@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bocianowski1/db"
 	"golang.org/x/net/websocket"
 )
 
@@ -48,6 +49,15 @@ func wsHandler(ws *websocket.Conn) {
 		receiver := parts[2]
 
 		log.Println("Message received: " + msg + " from " + client.Username + " to " + receiver)
+
+		if err := db.CreateMessage(&db.Message{
+			Sender:   client.Username,
+			Receiver: receiver,
+			Content:  msg,
+		}); err != nil {
+			log.Printf("Error saving message to database: %v\n", err)
+			continue
+		}
 
 		// Broadcast the message to all connected clients
 		broadcastMessage(clientID, client.Username, msg, receiver)

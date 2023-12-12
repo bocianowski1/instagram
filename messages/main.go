@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bocianowski1/messages/db"
+	"github.com/bocianowski1/db"
 	"golang.org/x/net/websocket"
 )
 

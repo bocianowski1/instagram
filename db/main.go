@@ -24,27 +24,15 @@ func Init() {
 	log.Println("Connected to database")
 	// db.Logger = db.Logger.LogMode(logger.Info)
 
-	// if os.Getenv("ENV") == "development" {
 	db.Exec("DROP TABLE IF EXISTS users")
 	db.Exec("DROP TABLE IF EXISTS sessions")
-	// }
+	db.Exec("DROP TABLE IF EXISTS messages")
 
 	log.Println("Migrating the schema...")
-	db.AutoMigrate(&User{}, &Session{})
+	db.AutoMigrate(&User{}, &Session{}, &Message{})
 
 	Db = db
 
-	// if os.Getenv("ENV") == "development" {
-	db.Create(&User{
-		Username: "admin",
-		Password: "admin",
-		IsAdmin:  true,
-	})
-
-	db.Create(&User{
-		Username: "guest",
-		Password: "guest",
-	})
-	// }
+	Seed()
 
 }

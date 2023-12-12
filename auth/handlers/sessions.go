@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/bocianowski1/auth/db"
 	"github.com/bocianowski1/auth/util"
+	"github.com/bocianowski1/db"
 	"github.com/gofiber/fiber/v2"
 )
 
