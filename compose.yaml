@@ -82,10 +82,13 @@ services:
     build:
       context: ./messages
     container_name: messages
+    env_file:
+      - .env
     ports:
       - "9999:9999"
     restart: always
     depends_on:
+      - postgres
       - auth
     networks:
       - app-network
