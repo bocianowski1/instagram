@@ -34,7 +34,7 @@ const links = [
 
 export function Footer() {
   return (
-    <footer className="bg-white h-[4rem] absolute bottom-0 left-0 right-0 z-50 border-t border-t-neutral-200">
+    <footer className="bg-white h-[4rem] sticky bottom-0 left-0 right-0 z-50 border-t border-t-neutral-200">
       <nav className="flex justify-between px-6 pt-3 pb-8">
         {links.map((link) => (
           <Link key={link.href} href={link.href}>

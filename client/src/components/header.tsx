@@ -28,7 +28,7 @@ const links = [
 
 export function Header() {
   return (
-    <header className="bg-white h-[12rem] absolute top-0 left-0 right-0 z-50 border-b border-neutral-200">
+    <header className="bg-white h-[12rem] sticky top-0 left-0 right-0 z-50 border-b border-neutral-200">
       <ul className="flex justify-between items-center px-4 pt-3">
         <h1 className="h-[75px] flex items-center overflow-hidden">
           <Image

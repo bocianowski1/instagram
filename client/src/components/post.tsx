@@ -6,14 +6,14 @@ import Image from "next/image";
 
 export function Post({ imageURL }: { imageURL: string }) {
   return (
-    <div className="bg-white flex flex-col h-fit pb-3">
+    <div className="w-full flex flex-col h-fit pb-3">
       <section className="flex gap-3 items-center p-2">
         <UserPreview
           profileImage={<div className="rounded-full bg-blue h-full w-full" />}
         />
         <p className="font-semibold">faze_torger</p>
       </section>
-      <section className="w-screen h-[50vh]">
+      <section className="h-[50vh]">
         {imageURL.endsWith("mp4") ? (
           <video
             src={imageURL}
