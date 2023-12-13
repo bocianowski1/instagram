@@ -32,3 +32,11 @@ func CreateMessage(message *Message) error {
 	}
 	return nil
 }
+
+func GetMessages(sender, receiver string) ([]*Message, error) {
+	var messages []*Message
+	if err := Db.Where("sender = ? AND receiver = ?", sender, receiver).Or("sender = ? AND receiver = ?", receiver, sender).Find(&messages).Error; err != nil {
+		return nil, err
+	}
+	return messages, nil
+}

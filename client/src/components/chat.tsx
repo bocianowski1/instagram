@@ -6,7 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
 import { PiPaperPlaneRight } from "react-icons/pi";
 
-export default function Chat({ user }: { user: User }) {
+export default function Chat({
+  user,
+  prevMessages,
+}: {
+  user: User;
+  prevMessages: any;
+}) {
   const path = usePathname();
   const usernames = path.split("/")[2];
   const usernamesList = usernames.split("--").sort();
@@ -33,7 +39,16 @@ export default function Chat({ user }: { user: User }) {
   const otherUser =
     user.username === usernamesList[0] ? usernamesList[1] : usernamesList[0];
 
-  const [messages, setMessages] = useState<string[]>([]);
+  // prevMessages is an array of type message, but we need to convert it to an array of strings in the format of "sender--content--receiver"
+  // so that we can display it in the chat
+  let prevMessagesString: string[] = [];
+  prevMessages.forEach((message: any) => {
+    prevMessagesString.push(
+      `${message.sender}--${message.content}--${message.receiver}`
+    );
+  });
+
+  const [messages, setMessages] = useState<string[]>(prevMessagesString);
   const [messageInput, setMessageInput] = useState("");
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
@@ -75,6 +90,8 @@ export default function Chat({ user }: { user: User }) {
 
   const sendMessage = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
+      if (!messageInput) return;
+
       const message = `${thisUser}--${messageInput}--${otherUser}`;
       socket.send(message);
       setMessages((messages) => [...messages, message]);
@@ -167,7 +184,7 @@ export default function Chat({ user }: { user: User }) {
           autoFocus
           ref={inputRef}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey && messageInput) {
               e.preventDefault();
               sendMessage();
             }

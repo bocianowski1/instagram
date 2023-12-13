@@ -4,8 +4,16 @@ export type CloudImage = {
 };
 
 export type User = {
-  id: string;
+  ID: string;
   username: string;
   password: string;
   role: string;
+};
+
+export type Message = {
+  ID: string;
+  sender: string;
+  receiver: string;
+  content: string;
+  CreatedAt: string;
 };

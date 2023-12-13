@@ -3,6 +3,7 @@ module github.com/bocianowski1/messages
 go 1.20
 
 require (
+	github.com/gorilla/mux v1.8.1
 	golang.org/x/net v0.17.0
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5

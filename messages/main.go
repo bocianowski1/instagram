@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"syscall"
 
 	"github.com/bocianowski1/messages/db"
+	"github.com/bocianowski1/messages/util"
+	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 )
 
@@ -23,24 +26,27 @@ type Client struct {
 
 var clients = make(map[string]*Client)
 var clientsLock = &sync.RWMutex{}
-var messageQueue = make(chan *db.Message, 100) // Adjust the channel size based on your requirements
+var messageQueue = make(chan *db.Message, 100)
 var wg sync.WaitGroup
 var shutdownChan = make(chan os.Signal, 1)
 
 func main() {
 	db.Init()
+	r := mux.NewRouter()
+	r.HandleFunc("/messages", handleGetMessages)
+
 	// signal for graceful shutdown
 	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
 
 	// start websocket
-	http.Handle("/ws", websocket.Handler(wsHandler))
+	r.Handle("/ws", websocket.Handler(wsHandler))
 
 	wg.Add(1)
 	go processMessages()
 
 	go func() {
 		log.Println("WebSocket server is listening on :9999")
-		if err := http.ListenAndServe(":9999", nil); err != nil {
+		if err := http.ListenAndServe(":9999", r); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -145,4 +151,39 @@ func generateUniqueID() string {
 func removeClient(clientID string) {
 	delete(clients, clientID)
 	log.Printf("Client disconnected: %s\n", clientID)
+}
+
+func handleGetMessages(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	user1 := r.URL.Query().Get("user1")
+	user2 := r.URL.Query().Get("user2")
+
+	if user1 == "" || user2 == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !util.ValidateUsername(user1) || !util.ValidateUsername(user2) {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	messages, err := db.GetMessages(user1, user2)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonMessages, err := json.Marshal(messages)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonMessages)
 }
