@@ -57,7 +57,7 @@ app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
 
-app.get("/images", cache, async (req, res) => {
+app.get("/images", async (req, res) => {
   try {
     const result = await cloudinary.search
       .sort_by("public_id", "desc")
@@ -82,7 +82,7 @@ app.get("/images", cache, async (req, res) => {
   }
 });
 
-app.get("/images/:id", cache, async (req, res) => {
+app.get("/images/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
