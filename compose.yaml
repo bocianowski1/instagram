@@ -20,6 +20,7 @@ services:
     build:
       context: ./auth
     container_name: auth
+    restart: always
     env_file:
       - .env
     ports:
