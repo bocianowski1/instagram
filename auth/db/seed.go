@@ -1,14 +1,23 @@
 package db
 
-func Seed() {
-	Db.Create(&User{
-		Username: "admin",
-		Password: "admin",
-		IsAdmin:  true,
-	})
+import "log"
 
-	Db.Create(&User{
-		Username: "guest",
-		Password: "guest",
-	})
+func Seed() {
+	admin := &User{
+		Username:  "admin",
+		Name:      "Addy",
+		Password:  "admin",
+		Followers: []*User{},
+		Following: []*User{},
+	}
+	guest := &User{
+		Username:  "guest",
+		Name:      "Gus",
+		Password:  "guest",
+		Followers: []*User{},
+		Following: []*User{},
+	}
+	Db.Create(admin)
+	Db.Create(guest)
+	log.Println("Seeded the database")
 }

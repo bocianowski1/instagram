@@ -6,14 +6,11 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `json:"username" gorm:"unique" validate:"required"`
-	Password string `json:"password" validate:"required"`
-	IsAdmin  bool   `json:"is_admin" gorm:"default:false"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username  string  `json:"username" gorm:"unique" validate:"required"`
+	Name      string  `json:"name" validate:"required"`
+	Password  string  `json:"password" validate:"required"`
+	Followers []*User `gorm:"many2many:followers;"`
+	Following []*User `gorm:"many2many:following;"`
 }
 
 func CreateUser(user *User) error {
@@ -22,12 +19,17 @@ func CreateUser(user *User) error {
 
 func GetUsers() ([]*User, error) {
 	var users []*User
-	err := Db.Find(&users).Error
+	err := Db.Preload("Followers").Preload("Following").Find(&users).Error
 	return users, err
 }
 
 func GetUserByUsername(username string) (*User, error) {
 	user := &User{}
-	err := Db.Where("username = ?", username).First(user).Error
+	err := Db.Preload("Followers").Preload("Following").Where("username = ?", username).First(user).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+
 	return user, err
 }

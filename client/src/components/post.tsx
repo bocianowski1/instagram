@@ -8,9 +8,9 @@ export function Post({ imageURL }: { imageURL: string }) {
   return (
     <div className="w-full flex flex-col h-fit pb-3">
       <section className="flex gap-3 items-center p-2">
-        <UserPreview
-          profileImage={<div className="rounded-full bg-blue h-full w-full" />}
-        />
+        {/* <UserPreview
+          user={null}
+        /> */}
         <p className="font-semibold">faze_torger</p>
       </section>
       <section className="h-[50vh]">

@@ -24,8 +24,10 @@ func Init() {
 	log.Println("Connected to database")
 	// db.Logger = db.Logger.LogMode(logger.Info)
 
-	db.Exec("DROP TABLE IF EXISTS users")
-	db.Exec("DROP TABLE IF EXISTS sessions")
+	db.Exec("DROP TABLE IF EXISTS users CASCADE")
+	db.Exec("DROP TABLE IF EXISTS sessions CASCADE")
+	db.Exec("DROP TABLE IF EXISTS followers CASCADE")
+	db.Exec("DROP TABLE IF EXISTS following CASCADE")
 
 	log.Println("Migrating the schema...")
 	db.AutoMigrate(&User{}, &Session{})
@@ -33,5 +35,4 @@ func Init() {
 	Db = db
 
 	Seed()
-
 }

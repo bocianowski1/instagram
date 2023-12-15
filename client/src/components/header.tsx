@@ -1,7 +1,10 @@
+"use server";
 import Image from "next/image";
 import Link from "next/link";
 import { FiHeart, FiMessageCircle, FiPlusSquare } from "react-icons/fi";
 import { UserPreview } from "./user-preview";
+import { getUsers } from "@/api/users";
+import { User } from "@/lib/types";
 
 const links = [
   {
@@ -26,7 +29,9 @@ const links = [
   },
 ];
 
-export function Header() {
+export async function Header() {
+  const users = (await getUsers()) as User[];
+
   return (
     <header className="bg-white h-[12rem] sticky top-0 left-0 right-0 z-50 border-b border-neutral-200">
       <ul className="flex justify-between items-center px-4 pt-3">
@@ -39,10 +44,10 @@ export function Header() {
             className="object-contain h-full w-full"
           />
         </h1>
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-4">
           {links.map((link) => (
             <Link key={link.href} href={link.href}>
-              <span className="flex flex-col items-center text-2xl">
+              <span className="flex flex-col items-center p-1 text-2xl hover:scale-110 transition-all duration-300">
                 {link.icon}
                 <span hidden>{link.label}</span>
               </span>
@@ -54,15 +59,16 @@ export function Header() {
       {/* Stories */}
       <section className="w-full overflow-x-scroll pb-4">
         <ul className="flex justify-between gap-2 w-fit px-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((item) => (
-            <li
-              key={item}
-              className="relative flex flex-col gap-1 items-center"
-            >
-              <UserPreview profileImage={<div />} hasStory />
-              <span className="text-sm">Me</span>
-            </li>
-          ))}
+          {users &&
+            users.map((user) => (
+              <li
+                key={user.ID}
+                className="relative flex flex-col gap-1 items-center"
+              >
+                <UserPreview user={user} hasStory />
+                <span className="text-sm">{user.username}</span>
+              </li>
+            ))}
         </ul>
       </section>
     </header>

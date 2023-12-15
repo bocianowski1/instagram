@@ -1,11 +1,11 @@
 "use server";
 import { getAuth } from "@/api/auth";
-import { loadDM } from "@/api/dm";
-import Chat from "@/components/chat";
+import { getMessages } from "@/api/dm";
+import { Chat } from "@/components/chat/chat";
 
 export default async function DM() {
   const { user } = await getAuth();
-  const messages = await loadDM({
+  const messages = await getMessages({
     user1: user.username,
     user2: user.username === "admin" ? "guest" : "admin",
   });
