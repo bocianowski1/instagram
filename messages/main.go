@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -13,10 +12,18 @@ import (
 	"syscall"
 
 	"github.com/bocianowski1/messages/db"
-	"github.com/bocianowski1/messages/util"
+	"github.com/bocianowski1/messages/handlers"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/websocket"
 )
+
+type Server struct {
+	Clients      map[string]*Client
+	Lock         *sync.RWMutex
+	MessageQueue chan *db.Message
+	Wg           sync.WaitGroup
+	ShutdownChan chan os.Signal
+}
 
 type Client struct {
 	ID       string
@@ -24,25 +31,32 @@ type Client struct {
 	Conn     *websocket.Conn
 }
 
-var clients = make(map[string]*Client)
-var clientsLock = &sync.RWMutex{}
-var messageQueue = make(chan *db.Message, 100)
-var wg sync.WaitGroup
-var shutdownChan = make(chan os.Signal, 1)
+func NewServer() *Server {
+	return &Server{
+		Clients:      make(map[string]*Client),
+		Lock:         &sync.RWMutex{},
+		MessageQueue: make(chan *db.Message, 100),
+		Wg:           sync.WaitGroup{},
+		ShutdownChan: make(chan os.Signal, 1),
+	}
+}
 
 func main() {
 	db.Init()
+
+	s := NewServer()
+
 	r := mux.NewRouter()
-	r.HandleFunc("/messages", handleGetMessages)
+	r.HandleFunc("/messages", handlers.HandleGetMessages).Methods(http.MethodGet)
 
 	// signal for graceful shutdown
-	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(s.ShutdownChan, os.Interrupt, syscall.SIGTERM)
 
 	// start websocket
-	r.Handle("/ws", websocket.Handler(wsHandler))
+	r.Handle("/ws", websocket.Handler(s.WebSocket))
 
-	wg.Add(1)
-	go processMessages()
+	s.Wg.Add(1)
+	go s.processMessages()
 
 	go func() {
 		log.Println("WebSocket server is listening on :9999")
@@ -52,26 +66,26 @@ func main() {
 	}()
 
 	// Wait for shutdown signal
-	<-shutdownChan
+	<-s.ShutdownChan
 
 	log.Println("Shutting down...")
-	close(shutdownChan)
-	wg.Wait()
+	close(s.ShutdownChan)
+	s.Wg.Wait()
 	log.Println("Shutdown complete")
 }
 
-func wsHandler(ws *websocket.Conn) {
+func (s *Server) WebSocket(ws *websocket.Conn) {
 	clientID := generateUniqueID()
 	client := &Client{ID: clientID, Conn: ws}
 
-	clientsLock.Lock()
-	clients[clientID] = client
-	clientsLock.Unlock()
+	s.Lock.Lock()
+	s.Clients[clientID] = client
+	s.Lock.Unlock()
 
 	defer func() {
-		clientsLock.Lock()
-		delete(clients, clientID)
-		clientsLock.Unlock()
+		s.Lock.Lock()
+		delete(s.Clients, clientID)
+		s.Lock.Unlock()
 	}()
 
 	for {
@@ -95,44 +109,44 @@ func wsHandler(ws *websocket.Conn) {
 
 		log.Println("Message received: " + msg + " from " + client.Username + " to " + receiver)
 
-		messageQueue <- &db.Message{
+		s.MessageQueue <- &db.Message{
 			Sender:   client.Username,
 			Receiver: receiver,
 			Content:  msg,
 		}
 
-		broadcastMessage(clientID, client.Username, msg, receiver)
+		s.broadcastMessage(client.Username, msg, receiver)
 	}
 }
 
-func processMessages() {
-	defer wg.Done()
+func (s *Server) processMessages() {
+	defer s.Wg.Done()
 
 	for {
 		select {
-		case message := <-messageQueue:
+		case message := <-s.MessageQueue:
 			if err := db.CreateMessage(message); err != nil {
 				log.Printf("Error saving message to database: %v\n", err)
 			}
-		case <-shutdownChan:
+		case <-s.ShutdownChan:
 			log.Println("Received shutdown signal. Exiting...")
 			return
 		}
 	}
 }
 
-func broadcastMessage(senderID, senderUsername, msg, receiver string) {
-	clientsLock.RLock()
-	defer clientsLock.RUnlock()
+func (s *Server) broadcastMessage(senderUsername, msg, receiver string) {
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
 
-	for _, client := range clients {
+	for _, client := range s.Clients {
 		if isWebSocketOpen(client.Conn) {
 			fullMessage := fmt.Sprintf("%s--%s--%s", senderUsername, msg, receiver)
 			if err := websocket.Message.Send(client.Conn, fullMessage); err != nil {
 				log.Printf("Error sending message to %s: %v\n", client.ID, err)
 			}
 		} else {
-			removeClient(client.ID)
+			delete(s.Clients, client.ID)
 		}
 	}
 }
@@ -146,44 +160,4 @@ func isWebSocketOpen(ws *websocket.Conn) bool {
 func generateUniqueID() string {
 	id := rand.Intn(8999) + 1000
 	return fmt.Sprintf("%d", id)
-}
-
-func removeClient(clientID string) {
-	delete(clients, clientID)
-	log.Printf("Client disconnected: %s\n", clientID)
-}
-
-func handleGetMessages(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	user1 := r.URL.Query().Get("user1")
-	user2 := r.URL.Query().Get("user2")
-
-	if user1 == "" || user2 == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if !util.ValidateUsername(user1) || !util.ValidateUsername(user2) {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	messages, err := db.GetMessages(user1, user2)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	jsonMessages, err := json.Marshal(messages)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonMessages)
 }

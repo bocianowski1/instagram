@@ -40,3 +40,11 @@ func GetMessages(sender, receiver string) ([]*Message, error) {
 	}
 	return messages, nil
 }
+
+func GetMessagesByUser(user string) ([]*Message, error) {
+	var messages []*Message
+	if err := Db.Where("sender = ? OR receiver = ?", user, user).Find(&messages).Error; err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
