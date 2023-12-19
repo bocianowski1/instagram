@@ -31,5 +31,9 @@ func HandleUserExistsUnprotected(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(exists)
+	if !exists {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }
