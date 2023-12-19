@@ -23,3 +23,13 @@ func HandleGetUserByUsername(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
+
+func HandleUserExistsUnprotected(c *fiber.Ctx) error {
+	username := c.Params("username")
+	exists, err := db.UserExists(username)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(exists)
+}

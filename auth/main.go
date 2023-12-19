@@ -37,6 +37,8 @@ func Routes(app *fiber.App) {
 	app.Post("/sessions", handlers.HandlePostSession)
 	app.Delete("/sessions", handlers.HandleDeleteSession)
 
+	app.Get("/users/:username/exists", handlers.HandleUserExistsUnprotected)
+
 	// JWT Middleware
 	jwt := middleware.NewAuthMiddleware(os.Getenv("SIGNING_KEY"))
 

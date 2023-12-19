@@ -33,3 +33,9 @@ func GetUserByUsername(username string) (*User, error) {
 
 	return user, err
 }
+
+func UserExists(username string) (bool, error) {
+	var count int64
+	err := Db.Model(&User{}).Where("username = ?", username).Count(&count).Error
+	return count > 0, err
+}
