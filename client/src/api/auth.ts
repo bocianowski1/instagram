@@ -4,26 +4,34 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function getAuth() {
-  const tokenObj = cookies().get("token");
+  try {
+    const tokenObj = cookies().get("token");
 
-  if (!tokenObj || !tokenObj.value) {
+    if (!tokenObj || !tokenObj.value) {
+      redirect("/auth/login");
+    }
+    const token = tokenObj.value;
+
+    const cookieUser = cookies().get("user");
+    if (!cookieUser) {
+      redirect("/auth/login");
+    }
+
+    const user = JSON.parse(cookieUser.value) as User;
+
+    return { token, user };
+  } catch (error) {
+    console.log(error);
     redirect("/auth/login");
   }
-  const token = tokenObj.value;
-
-  const cookieUser = cookies().get("user");
-  if (!cookieUser) {
-    redirect("/auth/login");
-  }
-  const user = JSON.parse(cookieUser.value) as User;
-  return { token, user };
 }
 
 export async function login(formData: FormData) {
-  const username = formData.get("username");
+  let username = formData.get("username") as string;
+  username = username.toLowerCase();
   const password = formData.get("password");
 
-  const response = await fetch(`http://localhost:8080/auth/login`, {
+  const response = await fetch(`${process.env.AUTH_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -44,7 +52,8 @@ export async function login(formData: FormData) {
 }
 
 export async function register(formData: FormData) {
-  const username = formData.get("username");
+  let username = formData.get("username") as string;
+  username = username.toLowerCase();
   const name = formData.get("name");
   const password = formData.get("password");
   const repeatPassword = formData.get("repeatPassword");
@@ -57,7 +66,7 @@ export async function register(formData: FormData) {
     throw new Error("Passwords do not match");
   }
 
-  const response = await fetch(`http://localhost:8080/auth/register`, {
+  const response = await fetch(`${process.env.AUTH_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, name, password }),

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { WebSocketProvider } from "@/hooks/socket-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,7 @@ export default function RootLayout({
           " relative flex flex-col min-h-screen mx-auto max-w-[600px] border-x border-x-neutral-200"
         }
       >
-        {children}
+        <WebSocketProvider>{children}</WebSocketProvider>
       </body>
     </html>
   );

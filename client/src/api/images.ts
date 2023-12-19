@@ -1,5 +1,5 @@
 export async function getImages() {
-  const response = await fetch(`http://localhost:8787/images`);
+  const response = await fetch(`${process.env.IMAGES_URL}/images`);
   if (!response.ok) {
     throw new Error(response.statusText);
   }

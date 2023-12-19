@@ -1,3 +1,4 @@
+"use server";
 import { getAuth } from "./auth";
 import { User } from "@/lib/types";
 import { redirect } from "next/navigation";
@@ -5,7 +6,7 @@ import { redirect } from "next/navigation";
 export async function getUsers() {
   const { token } = await getAuth();
 
-  const response = await fetch(`http://localhost:8080/users`, {
+  const response = await fetch(`${process.env.AUTH_URL}/users`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -26,7 +27,7 @@ export async function getUsers() {
 
 export async function getUserByUsername(username: string) {
   const { token } = await getAuth();
-  const response = await fetch(`http://localhost:8080/users/${username}`, {
+  const response = await fetch(`${process.env.AUTH_URL}/users/${username}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -44,15 +45,16 @@ export async function getUserByUsername(username: string) {
 
   const user = (await response.json()) as User;
 
-  console.log(user);
-
   return user;
 }
 
-export async function followUser(username: string, followingUsername: string) {
+export async function followUser(formData: FormData) {
   const { token } = await getAuth();
+  const username = formData.get("username");
+  const followingUsername = formData.get("profileUsername");
+
   const response = await fetch(
-    `http://localhost:8080/follow?username=${username}&followingUsername=${followingUsername}`,
+    `${process.env.AUTH_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
     {
       method: "POST",
       headers: {
@@ -62,8 +64,6 @@ export async function followUser(username: string, followingUsername: string) {
     }
   );
 
-  console.log("follow", response.status);
-
   if (response.status !== 200) {
     console.log(response.statusText);
     console.log(response.status);
@@ -71,13 +71,13 @@ export async function followUser(username: string, followingUsername: string) {
   }
 }
 
-export async function unfollowUser(
-  username: string,
-  followingUsername: string
-) {
+export async function unfollowUser(formData: FormData) {
   const { token } = await getAuth();
+  const username = formData.get("username");
+  const followingUsername = formData.get("profileUsername");
+
   const response = await fetch(
-    `http://localhost:8080/follow?username=${username}&followingUsername=${followingUsername}`,
+    `${process.env.AUTH_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
     {
       method: "DELETE",
       headers: {
@@ -86,8 +86,6 @@ export async function unfollowUser(
       },
     }
   );
-
-  console.log("unfollow", response.status);
 
   if (response.status !== 200) {
     console.log(response.statusText);

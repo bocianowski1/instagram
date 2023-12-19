@@ -1,40 +1,15 @@
-"use server";
 import Link from "next/link";
 import { IoChevronBack } from "react-icons/io5";
 import { FiSearch } from "react-icons/fi";
-import { PiCamera } from "react-icons/pi";
 import { UserPreview } from "@/components/user-preview";
 import { getAuth } from "@/api/auth";
-import { getMessages } from "@/api/dm";
-import { Message, User } from "@/lib/types";
-import { NewChat } from "@/components/chat/new-chat";
+import { User } from "@/lib/types";
 import { getUsers } from "@/api/users";
+import { Conversations } from "@/components/conversations";
 
 export default async function DMPage() {
   const { user } = await getAuth();
   const users = (await getUsers()) as User[];
-
-  const messages = (await getMessages({
-    user1: user.username,
-    user2: user.username === "admin" ? "guest" : "admin",
-  })) as Message[];
-
-  let conversations: { [key: string]: Message[] } = {};
-  messages.forEach((message) => {
-    if (message.sender === user.username) {
-      if (conversations[message.receiver]) {
-        conversations[message.receiver].push(message);
-      } else {
-        conversations[message.receiver] = [message];
-      }
-    } else {
-      if (conversations[message.sender]) {
-        conversations[message.sender].push(message);
-      } else {
-        conversations[message.sender] = [message];
-      }
-    }
-  });
 
   return (
     <main className="flex flex-col w-full px-4">
@@ -60,7 +35,7 @@ export default async function DMPage() {
         <section className="w-full overflow-x-scroll py-4">
           <ul className="flex justify-between gap-2 w-fit px-4">
             {users.map((u) => {
-              if (u.username === user.username) return null;
+              if (u.username === user?.username) return null;
               return (
                 <li
                   key={u.ID}
@@ -68,7 +43,7 @@ export default async function DMPage() {
                 >
                   <UserPreview
                     user={u}
-                    url={`/dm/${user.username}--${u.username}`}
+                    url={`/dm/${user?.username}--${u.username}`}
                     hasStory
                   />
                   <span className="text-sm">{u.username}</span>
@@ -85,54 +60,9 @@ export default async function DMPage() {
       <section className="flex flex-col gap-3 mt-4">
         <div className="flex justify-between items-center pl-2">
           <h2 className="font-semibold">Messages</h2>
-          {/* <NewChat
-            user={user}
-            otherUser={
-              {
-                username: user.username === "admin" ? "guest" : "admin",
-              } as User
-            }
-          /> */}
         </div>
-        <ul className="flex flex-col gap-2">
-          {conversations ? (
-            Object.keys(conversations).map((key) => (
-              <li
-                key={key}
-                className="hover:bg-neutral-100 transition-colors duration-300 ease-in-out"
-              >
-                <MessagePreview
-                  user={user}
-                  message={conversations[key][conversations[key].length - 1]}
-                />
-              </li>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No messages</p>
-          )}
-        </ul>
+        <Conversations user={user} />
       </section>
     </main>
-  );
-}
-
-function MessagePreview({ user, message }: { user: User; message: Message }) {
-  return (
-    <Link href={`dm/${message.sender}--${message.receiver}`}>
-      <div className="flex items-center gap-4">
-        <UserPreview user={user} hasStory />
-        <div className="flex flex-col flex-1">
-          <h3 className="font-semibold">
-            {user.username === message.sender
-              ? message.receiver
-              : message.sender}
-          </h3>
-          <p className="text-sm truncate">{message.content}</p>
-        </div>
-        <button className="text-xl px-4">
-          <PiCamera />
-        </button>
-      </div>
-    </Link>
   );
 }

@@ -5,6 +5,7 @@ import { FiHeart, FiMessageCircle, FiPlusSquare } from "react-icons/fi";
 import { UserPreview } from "./user-preview";
 import { getUsers } from "@/api/users";
 import { User } from "@/lib/types";
+import Notifications from "./notifications";
 
 const links = [
   {
@@ -33,7 +34,8 @@ export async function Header() {
   const users = (await getUsers()) as User[];
 
   return (
-    <header className="bg-white h-[12rem] sticky top-0 left-0 right-0 z-50 border-b border-neutral-200">
+    <header className="bg-white h-[12rem] sticky top-0 left-0 right-0 z-20 border-b border-neutral-200">
+      <Notifications />
       <ul className="flex justify-between items-center px-4 pt-3">
         <h1 className="h-[75px] flex items-center overflow-hidden">
           <Image

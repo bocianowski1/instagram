@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/bocianowski1/messages/util"
@@ -47,4 +48,12 @@ func GetMessagesByUser(user string) ([]*Message, error) {
 		return nil, err
 	}
 	return messages, nil
+}
+
+func ParseMessage(message string) (*Message, error) {
+	var msg Message
+	if err := json.Unmarshal([]byte(message), &msg); err != nil {
+		return nil, err
+	}
+	return &msg, nil
 }

@@ -1,16 +1,21 @@
-"use server";
 import { Post } from "@/components/post";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { CloudImage } from "@/lib/types";
 import { getImages } from "@/api/images";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getAuth } from "@/api/auth";
+import { MessageList } from "@/components/messages";
 
 export default async function Home() {
-  const { token, user } = await getAuth();
-  if (!token || !user) {
-    redirect("/auth/login");
+  try {
+    const { token, user } = await getAuth();
+    if (!token || !user) {
+      redirect("/auth/login");
+    }
+  } catch (error) {
+    console.log(error);
+    notFound();
   }
 
   // const images = await getImages();
@@ -25,6 +30,7 @@ export default async function Home() {
           ))
         ) : ( */}
         <p className="pt-20 text-gray-500">No posts...</p>
+        <MessageList />
         {/* // )} */}
       </main>
       <Footer />

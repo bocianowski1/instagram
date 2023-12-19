@@ -29,7 +29,6 @@ export default function RegisterPage() {
         <label className="flex flex-col gap-2">
           Name
           <input
-            autoFocus
             type="text"
             className="text-black px-3 py-1 rounded-lg border border-blue-500"
             name="name"

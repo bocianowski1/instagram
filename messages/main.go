@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"syscall"
 
@@ -43,10 +42,17 @@ func NewServer() *Server {
 
 func main() {
 	db.Init()
-
 	s := NewServer()
-
 	r := mux.NewRouter()
+
+	// cors (allow localhost:3000)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+			next.ServeHTTP(w, r)
+		})
+	})
+
 	r.HandleFunc("/messages", handlers.HandleGetMessages).Methods(http.MethodGet)
 
 	// signal for graceful shutdown
@@ -89,33 +95,23 @@ func (s *Server) WebSocket(ws *websocket.Conn) {
 	}()
 
 	for {
-		var msg string
-		if err := websocket.Message.Receive(ws, &msg); err != nil {
+		var stringMessage string
+		if err := websocket.Message.Receive(ws, &stringMessage); err != nil {
 			if err.Error() != "EOF" {
 				log.Printf("Error receiving message from %s: %v\n", clientID, err)
 			}
 			break
 		}
 
-		parts := strings.Split(msg, "--")
-		if len(parts) != 3 {
-			log.Printf("Invalid message format: %s\n", msg)
+		msg, err := db.ParseMessage(stringMessage)
+		if err != nil {
+			log.Printf("Error parsing message from %s: %v\n", clientID, err)
 			continue
 		}
 
-		client.Username = parts[0]
-		msg = parts[1]
-		receiver := parts[2]
+		s.MessageQueue <- msg
 
-		log.Println("Message received: " + msg + " from " + client.Username + " to " + receiver)
-
-		s.MessageQueue <- &db.Message{
-			Sender:   client.Username,
-			Receiver: receiver,
-			Content:  msg,
-		}
-
-		s.broadcastMessage(client.Username, msg, receiver)
+		s.broadcastMessage(msg)
 	}
 }
 
@@ -135,13 +131,13 @@ func (s *Server) processMessages() {
 	}
 }
 
-func (s *Server) broadcastMessage(senderUsername, msg, receiver string) {
+func (s *Server) broadcastMessage(msg *db.Message) {
 	s.Lock.RLock()
 	defer s.Lock.RUnlock()
 
 	for _, client := range s.Clients {
 		if isWebSocketOpen(client.Conn) {
-			fullMessage := fmt.Sprintf("%s--%s--%s", senderUsername, msg, receiver)
+			fullMessage := fmt.Sprintf(`{"sender":"%s","receiver":"%s","content":"%s"}`, msg.Sender, msg.Receiver, msg.Content)
 			if err := websocket.Message.Send(client.Conn, fullMessage); err != nil {
 				log.Printf("Error sending message to %s: %v\n", client.ID, err)
 			}

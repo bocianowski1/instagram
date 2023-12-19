@@ -17,20 +17,33 @@ func HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 	user1 := r.URL.Query().Get("user1")
 	user2 := r.URL.Query().Get("user2")
 
-	if user1 == "" || user2 == "" {
+	if user1 == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if !util.ValidateUsername(user1) || !util.ValidateUsername(user2) {
+	if !util.ValidateUsername(user1) || (user2 != "" && !util.ValidateUsername(user2)) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	messages, err := db.GetMessages(user1, user2)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	var (
+		messages []*db.Message
+		err      error
+	)
+
+	if user2 == "" {
+		messages, err = db.GetMessagesByUser(user1)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		messages, err = db.GetMessages(user1, user2)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	jsonMessages, err := json.Marshal(messages)

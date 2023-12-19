@@ -1,3 +1,5 @@
+import { Message } from "@/lib/types";
+
 interface DMProps {
   user1: string;
   user2: string;
@@ -10,12 +12,12 @@ export async function getMessages({ user1, user2 }: DMProps) {
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  return await response.json();
+  return (await response.json()) as Message[];
 }
 
 export async function getMessagesByUser(username: string) {
   const response = await fetch(
-    `http://localhost:9999/messages?user1=${username}`
+    `${process.env.MESSAGES_URL}/messages?user1=${username}`
   );
   if (!response.ok) {
     throw new Error(response.statusText);
