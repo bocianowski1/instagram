@@ -29,3 +29,12 @@ func CreateComment(comment *Comment) error {
 
 	return nil
 }
+
+func GetCommentsByUser(username string) ([]*Comment, error) {
+	var comments []*Comment
+	if err := Db.Where("username = ?", username).Find(&comments).Error; err != nil {
+		return nil, err
+	}
+
+	return comments, nil
+}

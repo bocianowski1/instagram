@@ -60,3 +60,18 @@ func HandleCreateComment(c *fiber.Ctx) error {
 
 	return c.JSON(comment)
 }
+
+func HandleGetCommentsByUser(c *fiber.Ctx) error {
+	username := c.Params("username")
+	if err := userExists(username); err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	comments, err := db.GetCommentsByUser(username)
+	if err != nil {
+		log.Println(err)
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return c.JSON(comments)
+}

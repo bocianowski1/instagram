@@ -7,9 +7,9 @@ import (
 )
 
 func userExists(username string) error {
-	url := os.Getenv("AUTH_URL")
+	url := os.Getenv("USERS_URL")
 	if url == "" {
-		log.Println("AUTH_URL not set, using default")
+		log.Println("USERS_URL not set, using default")
 		url = "http://localhost:8080"
 	}
 
