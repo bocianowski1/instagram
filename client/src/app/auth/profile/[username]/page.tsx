@@ -93,7 +93,7 @@ export default async function ProfilePage({ params: { username } }: Props) {
                     </button>
                   </form>
                 ) : (
-                  <form action={followUser}>
+                  <form action={followUser} method="POST">
                     <input
                       type="hidden"
                       name="profileUsername"

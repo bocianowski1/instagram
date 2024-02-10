@@ -14,7 +14,7 @@ export default async function DMPage() {
   return (
     <main className="flex flex-col w-full px-4">
       <section className="flex justify-between text-lg py-4">
-        <Link href={"/"} className="text-2xl">
+        <Link href="/" className="text-2xl">
           <IoChevronBack />
         </Link>
         <span className="text-xs text-gray-500">You are {user.username}</span>
