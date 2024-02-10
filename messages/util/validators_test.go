@@ -9,6 +9,12 @@ func TestValidateUsername(t *testing.T) {
 		t.Errorf("Expected %s to be valid username", validUsername)
 	}
 
+	validUsername = "guest"
+
+	if !ValidateUsername(validUsername) {
+		t.Errorf("Expected %s to be valid username", validUsername)
+	}
+
 	invalidUsername := "invalid"
 
 	if ValidateUsername(invalidUsername) {
