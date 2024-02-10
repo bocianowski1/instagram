@@ -16,10 +16,11 @@ services:
     networks:
       - app-network
 
-  auth:
+  users:
     build:
-      context: ./auth
-    container_name: auth
+      context: ./users
+      dockerfile: ./Dockerfile
+    container_name: users
     restart: always
     env_file:
       - .env
@@ -30,40 +31,63 @@ services:
     networks:
       - app-network
 
-  # sentiment:
-  #   build:
-  #     context: ./sentiment
-  #   container_name: sentiment
-  #   ports:
-  #     - "5555:5555"
-  #   networks:
-  #     - app-network
+  posts:
+    build:
+      context: ./posts
+      dockerfile: ./Dockerfile
+    container_name: posts
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "7979:7979"
+    depends_on:
+      - postgres
+      - users
+    networks:
+      - app-network
 
-  # cdn:
-  #   build:
-  #     context: ./cdn
-  #   container_name: cdn
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "8787:8787"
-  #   restart: always
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - app-network
+  messages:
+    build:
+      context: ./messages
+      dockerfile: ./Dockerfile
+    container_name: messages
+    env_file:
+      - .env
+    ports:
+      - "9999:9999"
+    restart: always
+    depends_on:
+      - postgres
+      - users
+    networks:
+      - app-network
 
-  # redis:
-  #   image: redis:6.2-alpine
-  #   container_name: redis
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   command: redis-server --save 20 1 --loglevel warning
-  #   # volumes:
-  #   #   - redis:/data
-  #   networks:
-  #     - app-network
+  cdn:
+    build:
+      context: ./cdn
+    container_name: cdn
+    env_file:
+      - .env
+    ports:
+      - "8787:8787"
+    restart: always
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    # volumes:
+    #   - redis:/data
+    networks:
+      - app-network
 
   # client:
   #   build:
@@ -73,7 +97,7 @@ services:
   #     - "3000:3000"
   #   # restart: always
   #   depends_on:
-  #     - auth
+  #     - users
   #     # - cdn
   #     - messages
   #   volumes:
@@ -82,21 +106,6 @@ services:
   #     - /app/.next
   #   networks:
   #     - app-network
-
-  messages:
-    build:
-      context: ./messages
-    container_name: messages
-    env_file:
-      - .env
-    ports:
-      - "9999:9999"
-    restart: always
-    depends_on:
-      - postgres
-      - auth
-    networks:
-      - app-network
 
 networks:
   app-network:
