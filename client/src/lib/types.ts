@@ -19,3 +19,28 @@ export type Message = {
   content: string;
   CreatedAt: string;
 };
+
+export type Comment = {
+  ID: number;
+  postId: number;
+  username: string;
+  content: string;
+  CreatedAt: string;
+};
+
+export type Like = {
+  ID: number;
+  postId: number;
+  username: string;
+  CreatedAt: string;
+};
+
+export type Post = {
+  ID: number;
+  username: string;
+  caption: string;
+  CreatedAt: string;
+  // Images: CloudImage[];
+  comments: Comment[];
+  likes: Like[];
+};

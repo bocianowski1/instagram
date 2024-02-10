@@ -1,3 +1,5 @@
+import { Like, Post } from "./types";
+
 export function formatDate(input: string): string {
   const inputDate = new Date(input);
 
@@ -26,4 +28,18 @@ export function formatDate(input: string): string {
   } else {
     return inputDate.toLocaleDateString();
   }
+}
+
+export function formatLikes(amount: number) {
+  if (amount >= 1000 && amount < 1_000_000) {
+    return `${Math.floor(amount / 1000)}k`;
+  } else if (amount >= 1_000_000) {
+    return `${Math.floor(amount / 1000000)}m`;
+  } else {
+    return amount;
+  }
+}
+
+export function postLikedByUser(post: Post, username: string) {
+  return post.likes.some((like: Like) => like.username === username);
 }
