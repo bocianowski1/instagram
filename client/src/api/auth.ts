@@ -31,7 +31,7 @@ export async function login(formData: FormData) {
   username = username.toLowerCase();
   const password = formData.get("password");
 
-  const response = await fetch(`${process.env.AUTH_URL}/auth/login`, {
+  const response = await fetch(`${process.env.USERS_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
@@ -66,7 +66,7 @@ export async function register(formData: FormData) {
     throw new Error("Passwords do not match");
   }
 
-  const response = await fetch(`${process.env.AUTH_URL}/auth/register`, {
+  const response = await fetch(`${process.env.USERS_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, name, password }),

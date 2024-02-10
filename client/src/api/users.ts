@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 export async function getUsers() {
   const { token } = await getAuth();
 
-  const response = await fetch(`${process.env.AUTH_URL}/users`, {
+  const response = await fetch(`${process.env.USERS_URL}/users`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -27,15 +27,13 @@ export async function getUsers() {
 
 export async function getUserByUsername(username: string) {
   const { token } = await getAuth();
-  const response = await fetch(`${process.env.AUTH_URL}/users/${username}`, {
+  const response = await fetch(`${process.env.USERS_URL}/users/${username}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });
-
-  console.log(response.status);
 
   if (response.status !== 200) {
     console.log(response.statusText);
@@ -54,7 +52,7 @@ export async function followUser(formData: FormData) {
   const followingUsername = formData.get("profileUsername");
 
   const response = await fetch(
-    `${process.env.AUTH_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
+    `${process.env.USERS_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
     {
       method: "POST",
       headers: {
@@ -69,6 +67,8 @@ export async function followUser(formData: FormData) {
     console.log(response.status);
     throw new Error(response.statusText);
   }
+
+  redirect(`/auth/profile/${followingUsername}`);
 }
 
 export async function unfollowUser(formData: FormData) {
@@ -77,7 +77,7 @@ export async function unfollowUser(formData: FormData) {
   const followingUsername = formData.get("profileUsername");
 
   const response = await fetch(
-    `${process.env.AUTH_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
+    `${process.env.USERS_URL}/follow?username=${username}&followingUsername=${followingUsername}`,
     {
       method: "DELETE",
       headers: {
@@ -92,4 +92,6 @@ export async function unfollowUser(formData: FormData) {
     console.log(response.status);
     throw new Error(response.statusText);
   }
+
+  redirect(`/auth/profile/${followingUsername}`);
 }
