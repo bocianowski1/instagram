@@ -35,10 +35,10 @@ export default function Notifications() {
         transition-all duration-200 ease-in-out
         `}
     >
-      <p>{notification}</p>
+      <p className="overflow-hidden">{notification}</p>
       <Link
         href="/dm"
-        className="bg-white absolute top-0 bottom-0 right-0 pl-2 flex items-center justify-center rounded-md"
+        className="bg-white pl-2 flex items-center justify-center rounded-md"
       >
         <PiPaperPlaneRight className="-rotate-45 text-lg" />
       </Link>

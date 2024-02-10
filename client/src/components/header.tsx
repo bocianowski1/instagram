@@ -6,6 +6,7 @@ import { UserPreview } from "./user-preview";
 import { getUsers } from "@/api/users";
 import { User } from "@/lib/types";
 import Notifications from "./notifications";
+import { getAuth } from "@/api/auth";
 
 const links = [
   {
@@ -31,6 +32,7 @@ const links = [
 ];
 
 export async function Header() {
+  const { user } = await getAuth();
   const users = (await getUsers()) as User[];
 
   return (
@@ -61,16 +63,25 @@ export async function Header() {
       {/* Stories */}
       <section className="w-full overflow-x-scroll pb-4">
         <ul className="flex justify-between gap-2 w-fit px-4">
+          <li className="relative flex flex-col gap-1 items-center">
+            <div className="border-r border-neutral-200 pr-2">
+              <UserPreview user={user} hasStory />
+            </div>
+            <span className="text-sm">{user.username}</span>
+          </li>
           {users &&
-            users.map((user) => (
-              <li
-                key={user.ID}
-                className="relative flex flex-col gap-1 items-center"
-              >
-                <UserPreview user={user} hasStory />
-                <span className="text-sm">{user.username}</span>
-              </li>
-            ))}
+            users.map((u) => {
+              if (u.username === user.username) return null;
+              return (
+                <li
+                  key={u.ID}
+                  className="relative flex flex-col gap-1 items-center"
+                >
+                  <UserPreview user={u} hasStory />
+                  <span className="text-sm">{u.username}</span>
+                </li>
+              );
+            })}
         </ul>
       </section>
     </header>

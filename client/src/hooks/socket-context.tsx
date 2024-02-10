@@ -1,7 +1,7 @@
 "use client";
 import { getAuth } from "@/api/auth";
 import { getMessages } from "@/api/dm";
-import { Message, User } from "@/lib/types";
+import type { Message } from "@/lib/types";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const WebSocketContext = createContext({
@@ -9,6 +9,7 @@ const WebSocketContext = createContext({
   socket: null as WebSocket | null,
   sendMessage: (message: Message) => {},
   hasNewMessages: false,
+  notify: () => {},
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -25,7 +26,6 @@ export const WebSocketProvider = ({
   useEffect(() => {
     console.log("Creating new WebSocket");
 
-    // fetch messages from server
     const fetchMessages = async () => {
       const { user } = await getAuth();
       const prevMessages = await getMessages({
@@ -59,11 +59,8 @@ export const WebSocketProvider = ({
       }
 
       setMessages((messages) => [...messages, jsonMsg]);
-      setHasNewMessages(true);
 
-      setTimeout(() => {
-        setHasNewMessages(false);
-      }, 2000);
+      notify();
     };
 
     newSocket.onclose = () => {
@@ -84,9 +81,16 @@ export const WebSocketProvider = ({
     }
   }
 
+  function notify(timeout: number = 2000) {
+    setHasNewMessages(true);
+    setTimeout(() => {
+      setHasNewMessages(false);
+    }, timeout);
+  }
+
   return (
     <WebSocketContext.Provider
-      value={{ messages, socket, sendMessage, hasNewMessages }}
+      value={{ messages, socket, sendMessage, hasNewMessages, notify }}
     >
       {children}
     </WebSocketContext.Provider>
